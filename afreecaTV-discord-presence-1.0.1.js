@@ -26,8 +26,24 @@ async function activity(url, channel_id) {
                 let afreeca_user_count = live_info.current_sum_viewer;
                 let afreeca_channel_name = afreeca_station.user_nick;
                 let afreeca_live_no = live_info.broad_no;
+
+                const res = await fetch('https://live.afreecatv.com/afreeca/player_live_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'bid=' + channel_id,
+                });
+                const cate_data = await res.json();
+                let category;
+                if (cate_data.CHANNEL.CATE) {
+                    category = await get_afreeca_category(cate_data.CHANNEL.CATE);
+                }
+                else {
+                    category = "기타";
+                }
+                
                 if (RPC) {
                     RPC.setActivity({
+                        state: `${category} 하는 중`,
                         details: afreeca_live_title,
                         largeImageKey: `https://liveimg.afreecatv.com/m/${afreeca_live_no}`,
                         largeImageText: `${afreeca_channel_name} - ${afreeca_user_count.toLocaleString()}명 시청 중`,
@@ -49,6 +65,26 @@ async function activity(url, channel_id) {
     }
 }
 
+async function get_afreeca_category(category_no) {
+    const res_1 = await fetch('https://live.afreecatv.com/script/locale/ko_KR/broad_category.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/javascript' },
+    });
+
+    const data_1 = await res_1.text();
+    let end = data_1.indexOf(`"${category_no}"`);
+    const cate_name = `"cate_name"`;
+    let start = data_1.lastIndexOf(cate_name, end);
+    start = data_1.indexOf('"', start + cate_name.length);
+    end = data_1.indexOf('"', start + 1);
+    const name = data_1.substring(start + 1, end);
+    if (name.length > 50) {
+        return '기타';
+    }
+    else {
+        return name
+    }
+}
 
 RPC.on('ready', async () => {
     console.log("아프리카TV 활동상태 ON")
