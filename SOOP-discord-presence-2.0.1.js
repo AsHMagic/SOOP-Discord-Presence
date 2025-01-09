@@ -19,12 +19,12 @@ async function activity(url, channel_id) {
             const data = await response.json();
             let live_info = data.broad;
             if (live_info != null) {
-                //console.log(live_info)
                 let soop_station = data.station;
                 let soop_live_title = live_info.broad_title;
                 let soop_user_count = live_info.current_sum_viewer;
                 let soop_channel_name = soop_station.user_nick;
                 let soop_live_no = live_info.broad_no;
+                let soop_live_start = soop_station.broad_start;
 
                 const res = await fetch('https://live.sooplive.co.kr/afreeca/player_live_api.php', {
                     method: 'POST',
@@ -44,6 +44,7 @@ async function activity(url, channel_id) {
                     RPC.setActivity({
                         state: `${category} 하는 중`,
                         details: soop_live_title,
+                        startTimestamp: new Date(soop_live_start),
                         largeImageKey: `https://liveimg.sooplive.co.kr/m/${soop_live_no}`,
                         largeImageText: `${soop_channel_name} - ${soop_user_count.toLocaleString()}명 시청 중`,
                         smallImageKey: 'https://cdn.discordapp.com/avatars/1223858213955436575/8addfe6c8f94485bd87fd3c5281faae5.webp?size=256',
